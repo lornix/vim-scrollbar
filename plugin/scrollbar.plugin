@@ -6,36 +6,56 @@
 " License:      TODO: Have to put something here
 "
 "
-if exists("g:loaded_scrollbar")
+if exists('g:loaded_scrollbar')
     finish
 endif
 let g:loaded_scrollbar=1
-"
-" some global constants
-let s:sb_augroup='Scrollbar'
-"
-" set up a default mapping to toggle the scrollbar
-" but only if user hasn't already done it
-if !hasmapto('<plug>ToggleScrollbar')
-    map <unique> <leader>sb <plug>ToggleScrollbar
-endif
+" TODO: for testing
+unlet! g:loaded_scrollbar
+unlet! g:scrollbar_thumb
+unlet! g:scrollbar_clear
+map <leader>sb dummy
+unmap <leader>sb
 "
 " save cpoptions
 let s:save_cpoptions=&cpoptions
 set cpoptions&vim
 "
-function! <plug>ToggleScrollbar
+" some global constants
+if !exists('s:scrollbar_thumb')
+    let g:scrollbar_thumb='#'
+endif
+if !exists('s:scrollbar_clear')
+    let g_scrollbar_clear='|'
+endif
+"
+" set up a default mapping to toggle the scrollbar
+" but only if user hasn't already done it
+if !hasmapto('ToggleScrollbar')
+    map <silent> <unique> <leader>sb :call <sid>ToggleScrollbar()<cr>
+endif
+"
+" start out activated or not?
+if !exists('s:scrollbar_active')
+    let s:scrollbar_active=1
+endif
+"
+function! <sid>ToggleScrollbar()
     if s:scrollbar_active
-        s:scrollbar_active=0
-        autocmd! &sb_augroup <buffer>
+        let s:scrollbar_active=0
+        " clear out the autocmds
+        augroup Scrollbar_augroup
+            autocmd!
+        augroup END
+        :echo "scrollbar off - ".localtime()
     else
-        s:scrollbar_active=1
+        let s:scrollbar_active=1
         call <sid>SetupScrollbar()
     endif
 endfunction
 
 function! <sid>SetupScrollbar()
-    augroup &sb_augroup
+    augroup Scrollbar_augroup
         " autocmd BufEnter     * :call <sid>showScrollbar()<cr>
         " autocmd BufWinEnter  * :call <sid>showScrollbar()<cr>
         " autocmd CursorHold   * :call <sid>showScrollbar()<cr>
@@ -49,7 +69,42 @@ function! <sid>SetupScrollbar()
 endfunction
 "
 function! <sid>showScrollbar()
-    echo 'show scrollbar'
+    " not active, go away
+    if s:scrollbar_active==0
+        return
+    endif
+    :echo "scrollbar on  - ".localtime()
+    " save foldenable
+    let scrollback_foldenable=&foldenable
+    set nofoldenable
+    " save virtualedit
+    let scrollback_virtualedit=&virtualedit
+    set virtualedit=all
+    let winview=winsaveview()
+
+    "
+    let scrollbar_column=1
+    let total_lines=line('$')
+    let current_line=line('.')
+    let winstart=line('w0')
+    let current_line=1
+    while current_line<=winheight(0)
+        let dest_line=winstart+current_line-1
+        call cursor(dest_line,scrollbar_column)
+        echohl Scrollbar_Clear
+        echon "|Hi"
+        echohl Scrollbar_Thumb
+        echon "|Hi"
+        echohl None
+        let current_line=current_line+1
+    endwhile
+
+    "
+    call winrestview(winview)
+    let &virtualedit=scrollback_virtualedit
+    unlet scrollback_virtualedit
+    let &foldenable=scrollback_foldenable
+    unlet scrollback_foldenable
 endfunction
 "
 " restore cpoptions
