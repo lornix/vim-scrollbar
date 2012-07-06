@@ -10,24 +10,26 @@ if exists('g:loaded_scrollbar')
     finish
 endif
 let g:loaded_scrollbar=1
-" TODO: for testing
-unlet! g:loaded_scrollbar
-unlet! g:scrollbar_thumb
-unlet! g:scrollbar_clear
-map <leader>sb dummy
-unmap <leader>sb
 "
 " save cpoptions
 let s:save_cpoptions=&cpoptions
 set cpoptions&vim
 "
 " some global constants
-if !exists('s:scrollbar_thumb')
+if !exists('g:scrollbar_thumb')
     let g:scrollbar_thumb='#'
 endif
-if !exists('s:scrollbar_clear')
-    let g_scrollbar_clear='|'
+if !exists('g:scrollbar_clear')
+    let g:scrollbar_clear='|'
 endif
+"
+"our highlighting scheme
+highlight Scrollbar_Clear ctermfg=green ctermbg=black guifg=green guibg=black cterm=none
+highlight Scrollbar_Thumb ctermfg=red   ctermbg=black guifg=red   guibg=black cterm=reverse
+"
+"the signs we're goint to use
+exec "sign define sbclear text=".g:scrollbar_clear." texthl=Scrollbar_Clear"
+exec "sign define sbthumb text=".g:scrollbar_thumb." texthl=Scrollbar_Thumb"
 "
 " set up a default mapping to toggle the scrollbar
 " but only if user hasn't already done it
@@ -47,7 +49,7 @@ function! <sid>ToggleScrollbar()
         augroup Scrollbar_augroup
             autocmd!
         augroup END
-        :echo "scrollbar off - ".localtime()
+        "call <sid>ZeroSignList()
     else
         let s:scrollbar_active=1
         call <sid>SetupScrollbar()
@@ -56,14 +58,14 @@ endfunction
 
 function! <sid>SetupScrollbar()
     augroup Scrollbar_augroup
-        " autocmd BufEnter     * :call <sid>showScrollbar()<cr>
-        " autocmd BufWinEnter  * :call <sid>showScrollbar()<cr>
-        " autocmd CursorHold   * :call <sid>showScrollbar()<cr>
-        " autocmd CursorHoldI  * :call <sid>showScrollbar()<cr>
-        " autocmd CursorMoved  * :call <sid>showScrollbar()<cr>
-        " autocmd CursorMovedI * :call <sid>showScrollbar()<cr>
-        " autocmd FocusGained  * :call <sid>showScrollbar()<cr>
-        " autocmd VimResized   * :call <sid>showScrollbar()<cr>
+        autocmd BufEnter     * :call <sid>showScrollbar()
+        autocmd BufWinEnter  * :call <sid>showScrollbar()
+        autocmd CursorHold   * :call <sid>showScrollbar()
+        autocmd CursorHoldI  * :call <sid>showScrollbar()
+        autocmd CursorMoved  * :call <sid>showScrollbar()
+        autocmd CursorMovedI * :call <sid>showScrollbar()
+        autocmd FocusGained  * :call <sid>showScrollbar()
+        autocmd VimResized   * :call <sid>showScrollbar()
     augroup END
     call <sid>showScrollbar()
 endfunction
@@ -73,39 +75,47 @@ function! <sid>showScrollbar()
     if s:scrollbar_active==0
         return
     endif
-    :echo "scrollbar on  - ".localtime()
-    " save foldenable
-    let scrollback_foldenable=&foldenable
-    set nofoldenable
-    " save virtualedit
-    let scrollback_virtualedit=&virtualedit
-    set virtualedit=all
-    let winview=winsaveview()
-
     "
-    let scrollbar_column=1
+    let bnum=bufnr("%")
     let total_lines=line('$')
     let current_line=line('.')
-    let winstart=line('w0')
-    let current_line=1
-    while current_line<=winheight(0)
-        let dest_line=winstart+current_line-1
-        call cursor(dest_line,scrollbar_column)
-        echohl Scrollbar_Clear
-        echon "|Hi"
-        echohl Scrollbar_Thumb
-        echon "|Hi"
-        echohl None
-        let current_line=current_line+1
+    let win_height=winheight(0)
+    let win_start=line('w0')+0 "curious, this was only one had to be forced
+    let clear_top=float2nr((current_line * win_height) / total_lines) - 1
+    if clear_top < 0
+        let clear_top=0
+    elseif clear_top > (win_height - 1)
+        let clear_top=win_height - 1
+    endif
+    let thumb_height=float2nr((win_height * win_height) / total_lines)
+    if thumb_height < 1
+        let thumb_height=1
+    elseif thumb_height > win_height
+        let thumb_height=win_height
+    endif
+    let thumb_height=thumb_height + clear_top
+    let linectr=1
+    while linectr <= clear_top
+        let dest_line=win_start+linectr-1
+        exec ":sign place ".dest_line." line=".dest_line." name=sbclear buffer=".bnum
+        let linectr=linectr+1
     endwhile
-
-    "
-    call winrestview(winview)
-    let &virtualedit=scrollback_virtualedit
-    unlet scrollback_virtualedit
-    let &foldenable=scrollback_foldenable
-    unlet scrollback_foldenable
+    while linectr <= thumb_height
+        let dest_line=win_start+linectr-1
+        exec ":sign place ".dest_line." line=".dest_line." name=sbthumb buffer=".bnum
+        let linectr=linectr+1
+    endwhile
+    while linectr <= win_height
+        let dest_line=win_start+linectr-1
+        exec ":sign place ".dest_line." line=".dest_line." name=sbclear buffer=".bnum
+        let linectr=linectr+1
+    endwhile
 endfunction
+"
+" fire it all up if we're 'active'
+if s:scrollbar_active != 0
+    call <sid>SetupScrollbar()
+endif
 "
 " restore cpoptions
 let &cpoptions=s:save_cpoptions

@@ -2,3 +2,5 @@
 
 This plugin will draw a scrollbar in the window depicting the cursor's
 current position in the file.
+
+TODO: fill in good stuff here...
