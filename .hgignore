@@ -1,0 +1,13 @@
+syntax: glob
+
+autom4te.cache/**
+src/.deps/**
+**.o
+
+config.h
+config.log
+config.status
+
+Session.vim
+
+doc/tags

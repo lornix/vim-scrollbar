@@ -1,0 +1,4 @@
+*scrollbar.txt* Plugin to create a curses scrollbar
+
+This plugin will draw a scrollbar in the window depicting the cursor's
+current position in the file.

@@ -1,0 +1,59 @@
+" Vim global plugin to display a curses scrollbar
+" Version:      0.1.1
+" Last Change:  2012 Jul 06
+" Author:       Loni Nix <lornix@lornix.com>
+"
+" License:      TODO: Have to put something here
+"
+"
+if exists("g:loaded_scrollbar")
+    finish
+endif
+let g:loaded_scrollbar=1
+"
+" some global constants
+let s:sb_augroup='Scrollbar'
+"
+" set up a default mapping to toggle the scrollbar
+" but only if user hasn't already done it
+if !hasmapto('<plug>ToggleScrollbar')
+    map <unique> <leader>sb <plug>ToggleScrollbar
+endif
+"
+" save cpoptions
+let s:save_cpoptions=&cpoptions
+set cpoptions&vim
+"
+function! <plug>ToggleScrollbar
+    if s:scrollbar_active
+        s:scrollbar_active=0
+        autocmd! &sb_augroup <buffer>
+    else
+        s:scrollbar_active=1
+        call <sid>SetupScrollbar()
+    endif
+endfunction
+
+function! <sid>SetupScrollbar()
+    augroup &sb_augroup
+        " autocmd BufEnter     * :call <sid>showScrollbar()<cr>
+        " autocmd BufWinEnter  * :call <sid>showScrollbar()<cr>
+        " autocmd CursorHold   * :call <sid>showScrollbar()<cr>
+        " autocmd CursorHoldI  * :call <sid>showScrollbar()<cr>
+        " autocmd CursorMoved  * :call <sid>showScrollbar()<cr>
+        " autocmd CursorMovedI * :call <sid>showScrollbar()<cr>
+        " autocmd FocusGained  * :call <sid>showScrollbar()<cr>
+        " autocmd VimResized   * :call <sid>showScrollbar()<cr>
+    augroup END
+    call <sid>showScrollbar()
+endfunction
+"
+function! <sid>showScrollbar()
+    echo 'show scrollbar'
+endfunction
+"
+" restore cpoptions
+let &cpoptions=s:save_cpoptions
+unlet s:save_cpoptions
+"
+" vim: set filetype=vim fileformat=unix expandtab softtabstop=4 shiftwidth=4 tabstop=8:
