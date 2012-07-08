@@ -39,19 +39,32 @@ endif
 "
 " start out activated or not?
 if !exists('s:scrollbar_active')
+    " turn on overall
     let s:scrollbar_active=1
+    " turn on for this buffer
+    let b:scrollbar_active=1
 endif
 "
+function! <sid>removesign(whichline)
+    bufline=b:linestatus[whichline]
+    " if bufline != 0
+
+endfunction
+"
+function! <sid>ChangeScreenSize()
+    for currentline in b:linestatus
+        call <sid>removesign(currentline)
+    endfor
+    unlet b:linestatus
+    let b:linestatus=[]
+endfunction
+"
 function! <sid>ToggleScrollbar()
-    if s:scrollbar_active
-        let s:scrollbar_active=0
-        " clear out the autocmds
-        augroup Scrollbar_augroup
-            autocmd!
-        augroup END
-        "call <sid>ZeroSignList()
+    if b:scrollbar_active
+        let b:scrollbar_active=0
+        call <sid>ChangeScreenSize()
     else
-        let s:scrollbar_active=1
+        let b:scrollbar_active=1
         call <sid>SetupScrollbar()
     endif
 endfunction
@@ -65,14 +78,15 @@ function! <sid>SetupScrollbar()
         autocmd CursorMoved  * :call <sid>showScrollbar()
         autocmd CursorMovedI * :call <sid>showScrollbar()
         autocmd FocusGained  * :call <sid>showScrollbar()
-        autocmd VimResized   * :call <sid>showScrollbar()
+        autocmd VimResized   * :call <sid>changeScreenSize()|:call <sid>showScrollbar()
     augroup END
+    let b:linestatus=[]
     call <sid>showScrollbar()
 endfunction
 "
 function! <sid>showScrollbar()
     " not active, go away
-    if s:scrollbar_active==0
+    if s:scrollbar_active==0 || b:scrollbar_active==0
         return
     endif
     "
@@ -112,7 +126,7 @@ function! <sid>showScrollbar()
     endwhile
 endfunction
 "
-" fire it all up if we're 'active'
+" fire it up if we're 'active'
 if s:scrollbar_active != 0
     call <sid>SetupScrollbar()
 endif
