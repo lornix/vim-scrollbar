@@ -34,18 +34,18 @@ exec "sign define sbthumb text=".g:scrollbar_thumb." texthl=Scrollbar_Thumb"
 " set up a default mapping to toggle the scrollbar
 " but only if user hasn't already done it
 if !hasmapto('ToggleScrollbar')
-    map <silent> <unique> <leader>sb :call <sid>ToggleScrollbar()<cr>
+    map <silent> <unique> <leader>sb :call ToggleScrollbar()<cr>
 endif
 "
 " start out activated or not?
-if !exists('s:scrollbar_active')
+if !exists('g:scrollbar_active')
     " turn on overall
-    let s:scrollbar_active=1
+    let g:scrollbar_active=1
     " turn on for this buffer
     let b:scrollbar_active=1
 endif
 "
-function! <sid>ToggleScrollbar()
+function! ToggleScrollbar()
     if b:scrollbar_active
         let b:scrollbar_active=0
         augroup Scrollbar_augroup
@@ -74,7 +74,7 @@ endfunction
 "
 function! <sid>showScrollbar()
     " not active, go away
-    if s:scrollbar_active==0 || b:scrollbar_active==0
+    if g:scrollbar_active==0 || b:scrollbar_active==0
         return
     endif
     "
@@ -115,7 +115,7 @@ function! <sid>showScrollbar()
 endfunction
 "
 " fire it up if we're 'active'
-if s:scrollbar_active != 0
+if g:scrollbar_active != 0
     call <sid>SetupScrollbar()
 endif
 "
