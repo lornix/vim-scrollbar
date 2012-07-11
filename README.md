@@ -18,6 +18,6 @@ Default settings, can be overridden
 
 Default mapping to toggle the scrollbar on/off:
 
-    map &lt;leader>sb :call ToggleScrollbar()&lt;cr>
+    map <leader>sb :call ToggleScrollbar()<cr>
 
-L Nix &lt;lornix@lornix.com>
+L Nix <lornix@lornix.com>
