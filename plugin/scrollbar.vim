@@ -45,24 +45,13 @@ if !exists('s:scrollbar_active')
     let b:scrollbar_active=1
 endif
 "
-function! <sid>removesign(whichline)
-    bufline=b:linestatus[whichline]
-    " if bufline != 0
-
-endfunction
-"
-function! <sid>ChangeScreenSize()
-    for currentline in b:linestatus
-        call <sid>removesign(currentline)
-    endfor
-    unlet b:linestatus
-    let b:linestatus=[]
-endfunction
-"
 function! <sid>ToggleScrollbar()
     if b:scrollbar_active
         let b:scrollbar_active=0
-        call <sid>ChangeScreenSize()
+        augroup Scrollbar_augroup
+            autocmd!
+        augroup END
+        :sign unplace *
     else
         let b:scrollbar_active=1
         call <sid>SetupScrollbar()
@@ -80,7 +69,6 @@ function! <sid>SetupScrollbar()
         autocmd FocusGained  * :call <sid>showScrollbar()
         autocmd VimResized   * :call <sid>changeScreenSize()|:call <sid>showScrollbar()
     augroup END
-    let b:linestatus=[]
     call <sid>showScrollbar()
 endfunction
 "
