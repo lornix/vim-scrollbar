@@ -4,6 +4,9 @@ An attempt to display a scrollbar with 'thumb' in curses-based vim.
 
 Uses the 'sign' feature of vim to display a scrollbar on the left-hand side.
 
+![Screenshot]
+(screenshot-01.png)
+
 When sourced, starts out enabled.
 
     let g:loaded_scrollbar=1             " prevents loading
