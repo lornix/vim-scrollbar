@@ -1,6 +1,6 @@
 " Vim global plugin to display a curses scrollbar
-" Version:      0.1.1
-" Last Change:  2012 Jul 06
+" Version:      0.1.2
+" Last Change:  2015 Jul 15
 " Author:       Loni Nix <lornix@lornix.com>
 "
 " License:      TODO: Have to put something here
@@ -44,8 +44,19 @@ if !exists('g:scrollbar_active')
     " turn on for this buffer
     let b:scrollbar_active=1
 endif
-"
+
+function! <sid>SetScrollbarVars()
+    " Checks to ensure the active vars are set for global / this buffer.
+    if !exists('b:scrollbar_active')
+        if !exists('g:scrollbar_active')
+            let g:scrollbar_active=1
+        endif
+        let b:scrollbar_active=g:scrollbar_active
+    endif
+endfunction
+
 function! ToggleScrollbar()
+    call <sid>SetScrollbarVars()
     if b:scrollbar_active
         let b:scrollbar_active=0
         augroup Scrollbar_augroup
@@ -73,6 +84,7 @@ function! <sid>SetupScrollbar()
 endfunction
 "
 function! <sid>showScrollbar()
+    call <sid>SetScrollbarVars()
     " not active, go away
     if g:scrollbar_active==0 || b:scrollbar_active==0
         return
