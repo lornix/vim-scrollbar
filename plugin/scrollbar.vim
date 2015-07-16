@@ -3,49 +3,44 @@
 " Last Change:  2015 Jul 15
 " Author:       Loni Nix <lornix@lornix.com>
 "
-" License:      TODO: Have to put something here
-"
-"
+" License:      Distributed under the same terms as Vim itself. See 
+"               `:help license`
+
+" Skip init if the loaded_scrollbar var is set.
 if exists('g:loaded_scrollbar')
     finish
 endif
 let g:loaded_scrollbar=1
-"
-" save cpoptions
+
+" Save cpoptions.
 let s:save_cpoptions=&cpoptions
 set cpoptions&vim
-"
-" some global constants
+
+" Set what character gets displayed for normal vs scrollbar highlighted lines.
+" Default to '#' for scrollbar, '|' for non-scrollbar.
 if !exists('g:scrollbar_thumb')
     let g:scrollbar_thumb='#'
 endif
 if !exists('g:scrollbar_clear')
     let g:scrollbar_clear='|'
 endif
-"
-"our highlighting scheme
+
+" Set highlighting scheme.
 highlight Scrollbar_Clear ctermfg=green ctermbg=black guifg=green guibg=black cterm=none
 highlight Scrollbar_Thumb ctermfg=red   ctermbg=black guifg=red   guibg=black cterm=reverse
-"
-"the signs we're goint to use
+
+" Set signs we're goint to use. http://vimdoc.sourceforge.net/htmldoc/sign.html
 exec "sign define sbclear text=".g:scrollbar_clear." texthl=Scrollbar_Clear"
 exec "sign define sbthumb text=".g:scrollbar_thumb." texthl=Scrollbar_Thumb"
-"
-" set up a default mapping to toggle the scrollbar
-" but only if user hasn't already done it
+
+" Set up a default mapping to toggle the scrollbar (but only if user hasn't
+" already done it). Default is <leader>sb.
 if !hasmapto('ToggleScrollbar')
     map <silent> <unique> <leader>sb :call ToggleScrollbar()<cr>
 endif
-"
-" start out activated or not?
-if !exists('g:scrollbar_active')
-    " turn on overall
-    let g:scrollbar_active=1
-    " turn on for this buffer
-    let b:scrollbar_active=1
-endif
 
-function! <sid>SetScrollbarVars()
+" Function to initialize the scrollbar's 'active' vars.
+function! <sid>SetScrollbarActive()
     " Checks to ensure the active vars are set for global / this buffer.
     if !exists('b:scrollbar_active')
         if !exists('g:scrollbar_active')
@@ -54,9 +49,11 @@ function! <sid>SetScrollbarVars()
         let b:scrollbar_active=g:scrollbar_active
     endif
 endfunction
+call <sid>SetScrollbarActive()
 
+" Function to toggle the scrollbar.
 function! ToggleScrollbar()
-    call <sid>SetScrollbarVars()
+    call <sid>SetScrollbarActive()
     if b:scrollbar_active
         let b:scrollbar_active=0
         augroup Scrollbar_augroup
@@ -69,6 +66,7 @@ function! ToggleScrollbar()
     endif
 endfunction
 
+" Set up autocmds to react to user input.
 function! <sid>SetupScrollbar()
     augroup Scrollbar_augroup
         autocmd BufEnter     * :call <sid>showScrollbar()
@@ -82,9 +80,9 @@ function! <sid>SetupScrollbar()
     augroup END
     call <sid>showScrollbar()
 endfunction
-"
+
 function! <sid>showScrollbar()
-    call <sid>SetScrollbarVars()
+    call <sid>SetScrollbarActive()
     " not active, go away
     if g:scrollbar_active==0 || b:scrollbar_active==0
         return
@@ -125,13 +123,13 @@ function! <sid>showScrollbar()
         let linectr=linectr+1
     endwhile
 endfunction
-"
-" fire it up if we're 'active'
+
+" Call setup if vars are set for 'active' scrollbar.
 if g:scrollbar_active != 0
     call <sid>SetupScrollbar()
 endif
 "
-" restore cpoptions
+" Restore cpoptions.
 let &cpoptions=s:save_cpoptions
 unlet s:save_cpoptions
 "
