@@ -1,6 +1,6 @@
 #vim-scrollbar
 
-An attempt to display a scrollbar with 'thumb' in curses-based vim.
+Displays a scrollbar with 'thumb' in curses-based vim (works in terminal).
 
 Uses the 'sign' feature of vim to display a scrollbar on the left-hand side.
 
@@ -9,21 +9,23 @@ Uses the 'sign' feature of vim to display a scrollbar on the left-hand side.
 
 ## Settings
 
-## Settings
-
 When sourced, starts out enabled.
 
-    let g:loaded_scrollbar=1             " prevents loading
+    " Prevents loading.
+    let g:loaded_scrollbar=1
 
 Default settings, can be overridden.
 
-    let g:scrollbar_thumb='#'            " default char to draw thumb
-    let g:scrollbar_clear='|'            " default char to draw non-thumb
+    " Default characters to use in the scrollbar.
+    let g:scrollbar_thumb='#'
+    let g:scrollbar_clear='|'
 
+    " Color settings.
     highlight Scrollbar_Clear ctermfg=green ctermbg=black guifg=green guibg=black cterm=none
     highlight Scrollbar_Thumb ctermfg=blue ctermbg=blue guifg=blue guibg=blue cterm=reverse
 
-Default mapping to toggle the scrollbar on/off is <leader>sb:
+Default mapping to toggle the scrollbar on/off is <leader>sb. You can change
+this by adding this line to your `.vimrc` and editing the mapping.
 
     map <leader>sb :call ToggleScrollbar()<cr>
 
