@@ -1,6 +1,6 @@
 " Vim global plugin to display a curses scrollbar
 " Version:              0.2.0
-" Last Change:          2015 Jul 17
+" Last Change:          2015 Jul 18
 " Initial Author:       Loni Nix <lornix@lornix.com>
 " Contributors:         Samuel Chern-Shinn Liu <sam@ambushnetworks.com>
 "

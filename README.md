@@ -9,6 +9,8 @@ Uses the 'sign' feature of vim to display a scrollbar on the left-hand side.
 
 ## Settings
 
+## Settings
+
 When sourced, starts out enabled.
 
     let g:loaded_scrollbar=1             " prevents loading
