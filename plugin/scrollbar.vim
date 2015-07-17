@@ -1,10 +1,11 @@
 " Vim global plugin to display a curses scrollbar
-" Version:      0.1.2
-" Last Change:  2015 Jul 15
-" Author:       Loni Nix <lornix@lornix.com>
+" Version:              0.2.0
+" Last Change:          2015 Jul 17
+" Initial Author:       Loni Nix <lornix@lornix.com>
+" Contributors:         Samuel Chern-Shinn Liu <sam@ambushnetworks.com>
 "
-" License:      Distributed under the same terms as Vim itself. See 
-"               `:help license`
+" License:              Distributed under the same terms as Vim itself. See 
+"                       `:help license`
 
 " Skip init if the loaded_scrollbar var is set.
 if exists('g:loaded_scrollbar')
@@ -17,7 +18,8 @@ let s:save_cpoptions=&cpoptions
 set cpoptions&vim
 
 " Set what character gets displayed for normal vs scrollbar highlighted lines.
-" Default to '#' for scrollbar, '|' for non-scrollbar.
+" Default to '#' for scrollbar, '|' for non-scrollbar. 
+" (User can override these!)
 if !exists('g:scrollbar_thumb')
     let g:scrollbar_thumb='#'
 endif
@@ -25,9 +27,9 @@ if !exists('g:scrollbar_clear')
     let g:scrollbar_clear='|'
 endif
 
-" Set highlighting scheme.
+" Set highlighting scheme. (User can override these!)
 highlight Scrollbar_Clear ctermfg=green ctermbg=black guifg=green guibg=black cterm=none
-highlight Scrollbar_Thumb ctermfg=red   ctermbg=black guifg=red   guibg=black cterm=reverse
+highlight Scrollbar_Thumb ctermfg=blue ctermbg=blue guifg=blue guibg=black cterm=reverse
 
 " Set signs we're goint to use. http://vimdoc.sourceforge.net/htmldoc/sign.html
 exec "sign define sbclear text=".g:scrollbar_clear." texthl=Scrollbar_Clear"
@@ -40,7 +42,7 @@ if !hasmapto('ToggleScrollbar')
 endif
 
 " Function to initialize the scrollbar's 'active' vars.
-function! <sid>SetScrollbarActive()
+function! <sid>SetScrollbarActiveIfUninitialized()
     " Checks to ensure the active vars are set for global / this buffer.
     if !exists('b:scrollbar_active')
         if !exists('g:scrollbar_active')
@@ -49,18 +51,24 @@ function! <sid>SetScrollbarActive()
         let b:scrollbar_active=g:scrollbar_active
     endif
 endfunction
-call <sid>SetScrollbarActive()
+call <sid>SetScrollbarActiveIfUninitialized()
 
 " Function to toggle the scrollbar.
 function! ToggleScrollbar()
-    call <sid>SetScrollbarActive()
+    call <sid>SetScrollbarActiveIfUninitialized()
     if b:scrollbar_active
+        " Toggle to inactive mode.
         let b:scrollbar_active=0
+
+        " Unset all autocmds for scrollbar.
         augroup Scrollbar_augroup
             autocmd!
         augroup END
+
+        " Remove all signs that have been set.
         :sign unplace *
     else
+        " Toggle to active. Setup the scrollbar.
         let b:scrollbar_active=1
         call <sid>SetupScrollbar()
     endif
@@ -68,11 +76,9 @@ endfunction
 
 " Set up autocmds to react to user input.
 function! <sid>SetupScrollbar()
-    augroup Scrollbar_augroup
+    augroup Scrollbar_augroup                   z
         autocmd BufEnter     * :call <sid>showScrollbar()
         autocmd BufWinEnter  * :call <sid>showScrollbar()
-        autocmd CursorHold   * :call <sid>showScrollbar()
-        autocmd CursorHoldI  * :call <sid>showScrollbar()
         autocmd CursorMoved  * :call <sid>showScrollbar()
         autocmd CursorMovedI * :call <sid>showScrollbar()
         autocmd FocusGained  * :call <sid>showScrollbar()
@@ -81,46 +87,55 @@ function! <sid>SetupScrollbar()
     call <sid>showScrollbar()
 endfunction
 
+" Main function that is called every time a user navigates the current buffer.
 function! <sid>showScrollbar()
-    call <sid>SetScrollbarActive()
-    " not active, go away
+    call <sid>SetScrollbarActiveIfUninitialized()
+    " Quit if the initialized active vars are set to false.
     if g:scrollbar_active==0 || b:scrollbar_active==0
         return
     endif
-    "
-    let bnum=bufnr("%")
+
+    " Buffer number.
+    let buffer_number=bufnr("%")
+    " Total # lines.
     let total_lines=line('$')
-    let current_line=line('.')
-    let win_height=winheight(0)
-    let win_start=line('w0')+0 "curious, this was only one had to be forced
-    let clear_top=float2nr((current_line * win_height) / total_lines) - 1
-    if clear_top < 0
-        let clear_top=0
-    elseif clear_top > (win_height - 1)
-        let clear_top=win_height - 1
+    " First line visible in the current window (at top of the buffer).
+    let buffer_top=line('w0')
+    " Last line visible in the current window. (at bottom of the buffer).
+    let buffer_bottom=line('w$')
+    " Text height.
+    let text_height=buffer_bottom-buffer_top
+
+    " If the window height is the same or greater than the total # of lines, we
+    " don't need to show a scrollbar. The whole page is visible in the buffer!
+    if winheight(0) >= total_lines
+        return
     endif
-    let thumb_height=float2nr((win_height * win_height) / total_lines)
-    if thumb_height < 1
-        let thumb_height=1
-    elseif thumb_height > win_height
-        let thumb_height=win_height
+
+    " Performance enhancer: don't redraw unless buffer window is changed.
+    if !exists('b:buffer_top') || !exists('b:buffer_bottom')
+        let b:buffer_top=buffer_top
+        let b:buffer_bottom=buffer_bottom
+    elseif b:buffer_top==buffer_top && b:buffer_bottom==buffer_bottom
+        return
+    else
+        let b:buffer_top=buffer_top
+        let b:buffer_bottom=buffer_bottom
     endif
-    let thumb_height=thumb_height + clear_top
-    let linectr=1
-    while linectr <= clear_top
-        let dest_line=win_start+linectr-1
-        exec ":sign place ".dest_line." line=".dest_line." name=sbclear buffer=".bnum
-        let linectr=linectr+1
-    endwhile
-    while linectr <= thumb_height
-        let dest_line=win_start+linectr-1
-        exec ":sign place ".dest_line." line=".dest_line." name=sbthumb buffer=".bnum
-        let linectr=linectr+1
-    endwhile
-    while linectr <= win_height
-        let dest_line=win_start+linectr-1
-        exec ":sign place ".dest_line." line=".dest_line." name=sbclear buffer=".bnum
-        let linectr=linectr+1
+
+    " How much padding at the top and bottom to give the scrollbar.
+    let padding_top=float2nr(float2nr((buffer_top*1000 / total_lines) * text_height) / 1000)
+    let padding_bottom=float2nr(float2nr(((total_lines - buffer_bottom)*1000 / total_lines) * text_height) / 1000)
+
+    " Draw the signs based on the delimiters calculated above!
+    let curr_line = buffer_top
+    while curr_line <= buffer_bottom
+        if curr_line >= (buffer_top+padding_top) && curr_line <= (buffer_bottom-padding_bottom)
+            exec ":sign place ".curr_line." line=".curr_line." name=sbthumb buffer=".buffer_number
+        else
+            exec ":sign place ".curr_line." line=".curr_line." name=sbclear buffer=".buffer_number
+        endif
+        let curr_line=curr_line+1
     endwhile
 endfunction
 
