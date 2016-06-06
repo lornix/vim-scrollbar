@@ -1,10 +1,10 @@
 " Vim global plugin to display a curses scrollbar
-" Version:              0.2.0
-" Last Change:          2015 Jul 18
+" Version:              0.2.1
+" Last Change:          2016 Jun 05
 " Initial Author:       Loni Nix <lornix@lornix.com>
 " Contributors:         Samuel Chern-Shinn Liu <sam@ambushnetworks.com>
 "
-" License:              Distributed under the same terms as Vim itself. See 
+" License:              Distributed under the same terms as Vim itself. See
 "                       `:help license`
 
 " Skip init if the loaded_scrollbar var is set.
@@ -18,7 +18,7 @@ let s:save_cpoptions=&cpoptions
 set cpoptions&vim
 
 " Set what character gets displayed for normal vs scrollbar highlighted lines.
-" Default to '#' for scrollbar, '|' for non-scrollbar. 
+" Default to '#' for scrollbar, '|' for non-scrollbar.
 " (User can override these!)
 if !exists('g:scrollbar_thumb')
     let g:scrollbar_thumb='#'
@@ -29,7 +29,7 @@ endif
 
 " Set highlighting scheme. (User can override these!)
 highlight Scrollbar_Clear ctermfg=green ctermbg=black guifg=green guibg=black cterm=none
-highlight Scrollbar_Thumb ctermfg=blue ctermbg=blue guifg=blue guibg=black cterm=reverse
+highlight Scrollbar_Thumb ctermfg=darkgreen ctermbg=darkgreen guifg=darkgreen guibg=black cterm=reverse
 
 " Set signs we're goint to use. http://vimdoc.sourceforge.net/htmldoc/sign.html
 exec "sign define sbclear text=".g:scrollbar_clear." texthl=Scrollbar_Clear"
@@ -74,17 +74,34 @@ function! ToggleScrollbar()
     endif
 endfunction
 
+function! RefreshScrollbar()
+    call <sid>showScrollbar()
+endfunction
+
 " Set up autocmds to react to user input.
 function! <sid>SetupScrollbar()
-    augroup Scrollbar_augroup                   z
+    augroup Scrollbar_augroup
         autocmd BufEnter     * :call <sid>showScrollbar()
         autocmd BufWinEnter  * :call <sid>showScrollbar()
-        autocmd CursorMoved  * :call <sid>showScrollbar()
-        autocmd CursorMovedI * :call <sid>showScrollbar()
+        "autocmd CursorMoved  * :call <sid>showScrollbar()
+        "autocmd CursorMovedI * :call <sid>showScrollbar()
         autocmd FocusGained  * :call <sid>showScrollbar()
         autocmd VimResized   * :call <sid>changeScreenSize()|:call <sid>showScrollbar()
     augroup END
     call <sid>showScrollbar()
+
+    " Trigger scrollbar refreshes with buffer-moving commands.
+    :nnoremap <C-E> <C-E>:call RefreshScrollbar()<CR>
+    :nnoremap <C-Y> <C-Y>:call RefreshScrollbar()<CR>
+
+    :nnoremap <C-F> <C-F>:call RefreshScrollbar()<CR>
+    :nnoremap <C-B> <C-B>:call RefreshScrollbar()<CR>
+
+    :nnoremap j j:call RefreshScrollbar()<CR>
+    :nnoremap k k:call RefreshScrollbar()<CR>
+
+    :nnoremap <UP> <UP>:call RefreshScrollbar()<CR>
+    :nnoremap <DOWN> <DOWN>:call RefreshScrollbar()<CR>
 endfunction
 
 " Main function that is called every time a user navigates the current buffer.
