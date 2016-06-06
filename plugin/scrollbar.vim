@@ -74,7 +74,7 @@ function! ToggleScrollbar()
     endif
 endfunction
 
-function! RefreshScrollbar()
+function RefreshScrollbar()
     call <sid>showScrollbar()
 endfunction
 
@@ -91,17 +91,17 @@ function! <sid>SetupScrollbar()
     call <sid>showScrollbar()
 
     " Trigger scrollbar refreshes with buffer-moving commands.
-    :nnoremap <C-E> <C-E>:call RefreshScrollbar()<CR>
-    :nnoremap <C-Y> <C-Y>:call RefreshScrollbar()<CR>
+    :nnoremap <silent> <C-E> <C-E>:call RefreshScrollbar()<CR>
+    :nnoremap <silent> <C-Y> <C-Y>:call RefreshScrollbar()<CR>
 
-    :nnoremap <C-F> <C-F>:call RefreshScrollbar()<CR>
-    :nnoremap <C-B> <C-B>:call RefreshScrollbar()<CR>
+    :nnoremap <silent> <C-F> <C-F>:call RefreshScrollbar()<CR>
+    :nnoremap <silent> <C-B> <C-B>:call RefreshScrollbar()<CR>
 
-    :nnoremap j j:call RefreshScrollbar()<CR>
-    :nnoremap k k:call RefreshScrollbar()<CR>
+    :nnoremap <silent> j j:call RefreshScrollbar()<CR>
+    :nnoremap <silent> k k:call RefreshScrollbar()<CR>
 
-    :nnoremap <UP> <UP>:call RefreshScrollbar()<CR>
-    :nnoremap <DOWN> <DOWN>:call RefreshScrollbar()<CR>
+    :nnoremap <silent> <UP> <UP>:call RefreshScrollbar()<CR>
+    :nnoremap <silent> <DOWN> <DOWN>:call RefreshScrollbar()<CR>
 endfunction
 
 " Main function that is called every time a user navigates the current buffer.
