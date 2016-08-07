@@ -97,8 +97,13 @@ function! <sid>SetupScrollbar()
     :nnoremap <silent> <C-F> <C-F>:call RefreshScrollbar()<CR>
     :nnoremap <silent> <C-B> <C-B>:call RefreshScrollbar()<CR>
 
+    :nnoremap <silent> <C-D> <C-D>:call RefreshScrollbar()<CR>
+    :nnoremap <silent> <C-U> <C-U>:call RefreshScrollbar()<CR>
+
     :nnoremap <silent> j j:call RefreshScrollbar()<CR>
     :nnoremap <silent> k k:call RefreshScrollbar()<CR>
+
+    :nnoremap <silent> n n:call RefreshScrollbar()<CR>
 
     :nnoremap <silent> <UP> <UP>:call RefreshScrollbar()<CR>
     :nnoremap <silent> <DOWN> <DOWN>:call RefreshScrollbar()<CR>
