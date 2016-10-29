@@ -50,6 +50,9 @@ function! <sid>SetScrollbarActiveIfUninitialized()
         endif
         let b:scrollbar_active=g:scrollbar_active
     endif
+    if !exists('g:scrollbar_binding_active')
+        let g:scrollbar_binding_active=1
+    endif
 endfunction
 call <sid>SetScrollbarActiveIfUninitialized()
 
