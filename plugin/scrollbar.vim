@@ -50,6 +50,9 @@ function! <sid>SetScrollbarActiveIfUninitialized()
         endif
         let b:scrollbar_active=g:scrollbar_active
     endif
+    if !exists('g:scrollbar_binding_active')
+        let g:scrollbar_binding_active=1
+    endif
 endfunction
 call <sid>SetScrollbarActiveIfUninitialized()
 
@@ -89,7 +92,11 @@ function! <sid>SetupScrollbar()
         autocmd VimResized   * :call <sid>changeScreenSize()|:call <sid>showScrollbar()
     augroup END
     call <sid>showScrollbar()
+endfunction
 
+" Set up keybindings that update scrollbar state.
+function! SetupScrollbarBindings()
+    let g:scrollbar_binding_active=1
     " Trigger scrollbar refreshes with buffer-moving commands.
     :nnoremap <silent> <C-E> <C-E>:call RefreshScrollbar()<CR>
     :nnoremap <silent> <C-Y> <C-Y>:call RefreshScrollbar()<CR>
@@ -164,6 +171,9 @@ endfunction
 " Call setup if vars are set for 'active' scrollbar.
 if g:scrollbar_active != 0
     call <sid>SetupScrollbar()
+endif
+if g:scrollbar_binding_active != 1
+    call SetupScrollbarBinding()
 endif
 "
 " Restore cpoptions.
