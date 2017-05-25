@@ -1,11 +1,10 @@
-#vim-scrollbar
+# vim-scrollbar
 
 Displays a scrollbar with 'thumb' in curses-based vim (works in terminal).
 
 Uses the 'sign' feature of vim to display a scrollbar on the left-hand side.
 
-![Screenshot]
-(doc/screenshot-00.png)
+![Screenshot](doc/screenshot-00.png)
 
 ## Settings
 
