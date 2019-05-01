@@ -51,7 +51,7 @@ function! <sid>SetScrollbarActiveIfUninitialized()
         let b:scrollbar_active=g:scrollbar_active
     endif
     if !exists('g:scrollbar_binding_active')
-        let g:scrollbar_binding_active=1
+        let g:scrollbar_binding_active=0
     endif
 endfunction
 call <sid>SetScrollbarActiveIfUninitialized()
@@ -173,7 +173,7 @@ if g:scrollbar_active != 0
     call <sid>SetupScrollbar()
 endif
 if g:scrollbar_binding_active != 1
-    call SetupScrollbarBinding()
+    call SetupScrollbarBindings()
 endif
 "
 " Restore cpoptions.
