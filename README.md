@@ -6,6 +6,13 @@ Uses the 'sign' feature of vim to display a scrollbar on the left-hand side.
 
 ![Screenshot](doc/screenshot-00.png)
 
+## Motivation
+
+You may find that proportional scrollbars are useful in long bodies of text if you are trying to edit
+a long file (as a wild example, a 5k SLOC python file at an old job). Trying to keep track of the "% of page" metric
+might not cut it. You may also be adverse to opening gvim/macvim (e.g maybe you use i3 or another tiling window system
+with a strong preference for staying in terminal windows).
+
 ## Settings
 
 Starts out enabled when sourced, assuming you always want to see the scrollbar.
