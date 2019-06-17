@@ -17,4 +17,4 @@ By default, <leader>sb will toggle the scrollbar.
 
 ABOUT                                           *scrollbar-about*
 
-This project is still mostly a proof-of-concept.
+This project is functional without major issues. See `github.com/lornix/vim-scrollbar` for the latest version.
