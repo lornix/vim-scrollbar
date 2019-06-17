@@ -173,7 +173,7 @@ if g:scrollbar_active != 0
     call <sid>SetupScrollbar()
 endif
 if g:scrollbar_binding_active != 1
-    call SetupScrollbarBinding()
+    call SetupScrollbarBindings()
 endif
 "
 " Restore cpoptions.
