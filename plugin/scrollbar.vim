@@ -1,4 +1,5 @@
 " Vim global plugin to display a curses scrollbar
+"
 " Version:              0.2.1
 " Last Change:          2016 Jun 05
 " Initial Author:       Loni Nix <lornix@lornix.com>
@@ -28,12 +29,12 @@ if !exists('g:scrollbar_clear')
 endif
 
 " Set highlighting scheme. (User can override these!)
-highlight Scrollbar_Clear ctermfg=green ctermbg=black guifg=green guibg=black cterm=none
-highlight Scrollbar_Thumb ctermfg=darkgreen ctermbg=darkgreen guifg=darkgreen guibg=black cterm=reverse
+highlight Scrollbar_Clear ctermfg=8 ctermbg=8 guifg=green guibg=black cterm=none
+highlight Scrollbar_Thumb ctermfg=0 ctermbg=0 guifg=darkgreen guibg=black cterm=reverse
 
 " Set signs we're goint to use. http://vimdoc.sourceforge.net/htmldoc/sign.html
-exec "sign define sbclear text=".g:scrollbar_clear." texthl=Scrollbar_Clear"
-exec "sign define sbthumb text=".g:scrollbar_thumb." texthl=Scrollbar_Thumb"
+exec "sign define ScrollbarClear text=".g:scrollbar_clear." texthl=Scrollbar_Clear"
+exec "sign define ScrollbarThumb text=".g:scrollbar_thumb." texthl=Scrollbar_Thumb"
 
 " Set up a default mapping to toggle the scrollbar (but only if user hasn't
 " already done it). Default is <leader>sb.
@@ -50,9 +51,6 @@ function! <sid>SetScrollbarActiveIfUninitialized()
         endif
         let b:scrollbar_active=g:scrollbar_active
     endif
-    if !exists('g:scrollbar_binding_active')
-        let g:scrollbar_binding_active=1
-    endif
 endfunction
 call <sid>SetScrollbarActiveIfUninitialized()
 
@@ -67,18 +65,39 @@ function! ToggleScrollbar()
         augroup Scrollbar_augroup
             autocmd!
         augroup END
-
-        " Remove all signs that have been set.
-        :sign unplace *
+        call ClearSings()
     else
         " Toggle to active. Setup the scrollbar.
         let b:scrollbar_active=1
+
         call <sid>SetupScrollbar()
     endif
 endfunction
 
-function RefreshScrollbar()
-    call <sid>showScrollbar()
+function! ClearSings()
+    " Remove all signs that have been set.
+    let buffer_number=bufnr("%")
+
+    redir => signs
+        silent exec ":sign place buffer=".buffer_number
+    redir END
+
+    for sign_line in filter(split(signs, '\n')[2:], 'v:val =~# "="')
+        " Typical sign line:  line=88 id=1234 name=ScrollbarThumb
+        let components  = split(sign_line)
+        let line        = str2nr(split(components[0], '=')[1])
+        let id          = str2nr(split(components[1], '=')[1])
+        let name        =        split(components[2], '=')[1]
+        let is_thumb = name =~# 'ScrollbarThumb'
+        let is_clear = name =~# 'ScrollbarClear'
+        let is_ours = is_thumb || is_clear
+        if is_ours
+            exec ":sign unplace ".id." buffer=".buffer_number
+        endif
+    endfor
+
+    let b:bar_cache = []
+    let b:buffer_top=-1
 endfunction
 
 " Set up autocmds to react to user input.
@@ -86,34 +105,12 @@ function! <sid>SetupScrollbar()
     augroup Scrollbar_augroup
         autocmd BufEnter     * :call <sid>showScrollbar()
         autocmd BufWinEnter  * :call <sid>showScrollbar()
-        "autocmd CursorMoved  * :call <sid>showScrollbar()
-        "autocmd CursorMovedI * :call <sid>showScrollbar()
+        autocmd CursorMoved  * :call <sid>showScrollbar()
+        autocmd CursorMovedI * :call <sid>showScrollbar()
         autocmd FocusGained  * :call <sid>showScrollbar()
-        autocmd VimResized   * :call <sid>changeScreenSize()|:call <sid>showScrollbar()
+        autocmd VimResized   * :call <sid>showScrollbar()
     augroup END
     call <sid>showScrollbar()
-endfunction
-
-" Set up keybindings that update scrollbar state.
-function! SetupScrollbarBindings()
-    let g:scrollbar_binding_active=1
-    " Trigger scrollbar refreshes with buffer-moving commands.
-    :nnoremap <silent> <C-E> <C-E>:call RefreshScrollbar()<CR>
-    :nnoremap <silent> <C-Y> <C-Y>:call RefreshScrollbar()<CR>
-
-    :nnoremap <silent> <C-F> <C-F>:call RefreshScrollbar()<CR>
-    :nnoremap <silent> <C-B> <C-B>:call RefreshScrollbar()<CR>
-
-    :nnoremap <silent> <C-D> <C-D>:call RefreshScrollbar()<CR>
-    :nnoremap <silent> <C-U> <C-U>:call RefreshScrollbar()<CR>
-
-    :nnoremap <silent> j j:call RefreshScrollbar()<CR>
-    :nnoremap <silent> k k:call RefreshScrollbar()<CR>
-
-    :nnoremap <silent> n n:call RefreshScrollbar()<CR>
-
-    :nnoremap <silent> <UP> <UP>:call RefreshScrollbar()<CR>
-    :nnoremap <silent> <DOWN> <DOWN>:call RefreshScrollbar()<CR>
 endfunction
 
 " Main function that is called every time a user navigates the current buffer.
@@ -133,11 +130,12 @@ function! <sid>showScrollbar()
     " Last line visible in the current window. (at bottom of the buffer).
     let buffer_bottom=line('w$')
     " Text height.
-    let text_height=buffer_bottom-buffer_top
+    "
+    let buffer_size=buffer_bottom-buffer_top
 
     " If the window height is the same or greater than the total # of lines, we
     " don't need to show a scrollbar. The whole page is visible in the buffer!
-    if winheight(0) >= total_lines
+    if winheight(0) >= total_lines || total_lines > 50000
         return
     endif
 
@@ -152,29 +150,92 @@ function! <sid>showScrollbar()
         let b:buffer_bottom=buffer_bottom
     endif
 
-    " How much padding at the top and bottom to give the scrollbar.
-    let padding_top=float2nr(float2nr((buffer_top*1000 / total_lines) * text_height) / 1000)
-    let padding_bottom=float2nr(float2nr(((total_lines - buffer_bottom)*1000 / total_lines) * text_height) / 1000)
+    let invalid_cache = !exists('b:bar_cache') || total_lines+2 != len(b:bar_cache)
+    if invalid_cache
+        call InitCache()
+    endif
 
+    " How much padding at the top and bottom to give the scrollbar.
+    let offset_top = floor(buffer_top*1.0/total_lines*buffer_size)
+    let tumb_size = ceil(buffer_size*1.0/total_lines*buffer_size)
     " Draw the signs based on the delimiters calculated above!
-    let curr_line = buffer_top
-    while curr_line <= buffer_bottom
-        if curr_line >= (buffer_top+padding_top) && curr_line <= (buffer_bottom-padding_bottom)
-            exec ":sign place ".curr_line." line=".curr_line." name=sbthumb buffer=".buffer_number
+
+    let scrollbar = []
+    let tumb_start = buffer_top + offset_top
+    let tumb_end = tumb_start + tumb_size
+    let buffer_line = buffer_top
+    while buffer_line <= buffer_bottom
+        if buffer_line >= tumb_start && buffer_line <= tumb_end
+            call add(scrollbar, 1)
         else
-            exec ":sign place ".curr_line." line=".curr_line." name=sbclear buffer=".buffer_number
+            call add(scrollbar, 0)
         endif
-        let curr_line=curr_line+1
+        let buffer_line+=1
+    endwhile
+
+    let bar_line = 0
+    while bar_line < len(scrollbar)
+        let line_num = (bar_line+buffer_top)
+        let cached_sign = get(b:bar_cache, line_num, -1)
+        let other_sign = cached_sign == 2
+        if other_sign
+            let scrollbar[bar_line] = cached_sign
+        endif
+        let miss_cache = scrollbar[bar_line] != cached_sign
+        if miss_cache && !other_sign
+            if scrollbar[bar_line] == 1
+                exec ":sign place ".line_num." line=".line_num." name=ScrollbarThumb buffer=".buffer_number
+            else
+                exec ":sign place ".line_num." line=".line_num." name=ScrollbarClear buffer=".buffer_number
+            endif
+            let b:bar_cache[line_num] = scrollbar[bar_line]
+        endif
+        let bar_line+=1
     endwhile
 endfunction
 
+function! InitCache() abort
+  let buffer_number=bufnr("%")
+  let total_lines=line('$')
+  let b:bar_cache = []
+  let line = 0
+  while line <= total_lines+1
+      call add(b:bar_cache, -1)
+      let line+=1
+  endwhile
+
+  redir => signs
+    silent exec ":sign place buffer=".buffer_number
+  redir END
+
+  for sign_line in filter(split(signs, '\n')[2:], 'v:val =~# "="')
+    " Typical sign line:  line=88 id=1234 name=ScrollbarThumb
+    let components  = split(sign_line)
+    let line        = str2nr(split(components[0], '=')[1])
+    let id          = str2nr(split(components[1], '=')[1])
+    let name        =        split(components[2], '=')[1]
+    let is_thumb = name =~# 'ScrollbarThumb'
+    let is_clear = name =~# 'ScrollbarClear'
+    let is_ours = is_thumb || is_clear
+    if is_ours
+        if is_thumb
+            let b:bar_cache[line] = 1
+        elseif is_clear
+            let b:bar_cache[line] = 0
+        endif
+    else
+      let b:bar_cache[line] = 2
+    endif
+  endfor
+
+endfunction
+
 " Call setup if vars are set for 'active' scrollbar.
+"
 if g:scrollbar_active != 0
     call <sid>SetupScrollbar()
 endif
-if g:scrollbar_binding_active != 1
-    call SetupScrollbarBindings()
-endif
+"
 "
 " Restore cpoptions.
 let &cpoptions=s:save_cpoptions
