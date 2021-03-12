@@ -51,7 +51,7 @@ function! <sid>SetScrollbarActiveIfUninitialized()
         let b:scrollbar_active=g:scrollbar_active
     endif
     if !exists('g:scrollbar_binding_active')
-        let g:scrollbar_binding_active=1
+        let g:scrollbar_binding_active=0
     endif
 endfunction
 call <sid>SetScrollbarActiveIfUninitialized()
@@ -59,6 +59,9 @@ call <sid>SetScrollbarActiveIfUninitialized()
 " Function to toggle the scrollbar.
 function! ToggleScrollbar()
     call <sid>SetScrollbarActiveIfUninitialized()
+
+    let g:scrollbar_active = !g:scrollbar_active
+
     if b:scrollbar_active
         " Toggle to inactive mode.
         let b:scrollbar_active=0
@@ -110,6 +113,7 @@ function! SetupScrollbarBindings()
     :nnoremap <silent> j j:call RefreshScrollbar()<CR>
     :nnoremap <silent> k k:call RefreshScrollbar()<CR>
 
+    :nnoremap <silent> N N:call RefreshScrollbar()<CR>
     :nnoremap <silent> n n:call RefreshScrollbar()<CR>
 
     :nnoremap <silent> <UP> <UP>:call RefreshScrollbar()<CR>

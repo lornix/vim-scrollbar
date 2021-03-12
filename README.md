@@ -18,9 +18,8 @@ with a strong preference for staying in terminal windows).
 Starts out enabled when sourced, assuming you always want to see the scrollbar.
 If you'd like to default to starting unsourced, add this to your `.vimrc:`
 
-    " Prevents loading by telling the plugin it's already loaded. You'll have
-    " to :call ToggleScrollbar()<CR> if you want to load it manually.
-    let g:loaded_scrollbar=1
+    " Prevents scrollbar setup. `:call ToggleScrollbar()<CR>` if you want to enable manually
+    let g:scrollbar_active = 0
 
 Default settings. These can be overridden by putting these in your `.vimrc`:
 
