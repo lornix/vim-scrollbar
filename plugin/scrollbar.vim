@@ -113,6 +113,7 @@ function! SetupScrollbarBindings()
     :nnoremap <silent> j j:call RefreshScrollbar()<CR>
     :nnoremap <silent> k k:call RefreshScrollbar()<CR>
 
+    :nnoremap <silent> N N:call RefreshScrollbar()<CR>
     :nnoremap <silent> n n:call RefreshScrollbar()<CR>
 
     :nnoremap <silent> <UP> <UP>:call RefreshScrollbar()<CR>
