@@ -59,6 +59,9 @@ call <sid>SetScrollbarActiveIfUninitialized()
 " Function to toggle the scrollbar.
 function! ToggleScrollbar()
     call <sid>SetScrollbarActiveIfUninitialized()
+
+    let g:scrollbar_active = !g:scrollbar_active
+
     if b:scrollbar_active
         " Toggle to inactive mode.
         let b:scrollbar_active=0
