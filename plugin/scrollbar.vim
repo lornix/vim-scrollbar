@@ -86,8 +86,8 @@ function! <sid>SetupScrollbar()
     augroup Scrollbar_augroup
         autocmd BufEnter     * :call <sid>showScrollbar()
         autocmd BufWinEnter  * :call <sid>showScrollbar()
-        "autocmd CursorMoved  * :call <sid>showScrollbar()
-        "autocmd CursorMovedI * :call <sid>showScrollbar()
+        autocmd CursorMoved  * :call <sid>showScrollbar()
+        autocmd CursorMovedI * :call <sid>showScrollbar()
         autocmd FocusGained  * :call <sid>showScrollbar()
         autocmd VimResized   * :call <sid>changeScreenSize()|:call <sid>showScrollbar()
     augroup END
